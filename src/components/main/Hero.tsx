@@ -1,20 +1,24 @@
 "use client";
 import Image from "next/image";
 import { useEffect, useState, useRef } from "react";
+
 const Hero = () => {
     const [isLoaded, setIsLoaded] = useState(false);
     const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
     const heroRef = useRef<HTMLElement | null>(null);
     const [isClient, setIsClient] = useState(false);
+
     useEffect(() => {
         setIsClient(true);
     }, []);
+
     const [particles, setParticles] = useState<Array<{
         top: string;
         left: string;
         delay: string;
         duration: string;
     }>>([]);
+
     useEffect(() => {
         const generatedParticles = [...Array(30)].map(() => ({
             top: `${Math.random() * 100}%`,
@@ -24,6 +28,7 @@ const Hero = () => {
         }));
         setParticles(generatedParticles);
     }, []);
+
     useEffect(() => {
         const timer = setTimeout(() => setIsLoaded(true), 300);
         const handleMouseMove = (e: MouseEvent) => {
@@ -41,11 +46,13 @@ const Hero = () => {
             window.removeEventListener("mousemove", handleMouseMove);
         };
     }, []);
+
     const getParallaxStyle = (strength = 10) => {
         return {
             transform: `translate(${mousePosition.x * strength}px, ${mousePosition.y * strength}px)`,
         };
     };
+
     return (<section id="home" ref={heroRef} className={`min-h-screen flex items-center justify-center pt-24 pb-12 px-4 sm:px-6 lg:px-8 text-slate-100 overflow-hidden relativebg-slate-900/95 backdrop-blur-sm ${isLoaded ? "opacity-100" : "opacity-0"} transition-all duration-1000`}>
       
       <div className="absolute inset-0 -z-10" style={{ zIndex: 0 }}>
@@ -87,7 +94,7 @@ const Hero = () => {
             
     <div className={`overflow-hidden ${isLoaded ? 'animate-reveal' : ''}`}>
   <h1 className="text-5xl md:text-7xl font-extrabold mb-6 leading-tight tracking-tight transform transition-all duration-700 delay-100">
-    <span className="text-white inline-block mr-2">Hello, I'm</span>
+    <span className="text-white inline-block mr-2">Hello, I&apos;m</span>
     <span className="relative bg-gradient-to-r from-indigo-400 via-purple-500 to-pink-500 bg-clip-text text-transparent animate-gradient-x inline-block">
       Revy
       <svg className="absolute -bottom-2 left-0 w-full h-2 text-pink-500/30" viewBox="0 0 100 10" preserveAspectRatio="none">
@@ -240,4 +247,5 @@ const Hero = () => {
       </div>
     </section>);
 };
+
 export default Hero;

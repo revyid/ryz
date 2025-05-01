@@ -4,20 +4,12 @@ import "@/styles/components/main/About.css";
 import { useEffect, useRef, useState } from "react";
 import { FaReact, FaLightbulb, FaBolt, FaMobileAlt, FaCode, FaDownload, FaCertificate } from "react-icons/fa";
 import { SiTypescript, SiNextdotjs } from "react-icons/si";
+
 const About = () => {
     const sectionRef = useRef<HTMLElement | null>(null);
     const imageRef = useRef<HTMLDivElement | null>(null);
     const [isInView, setIsInView] = useState(false);
-    const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-    useEffect(() => {
-        const handleMouseMove = (e: MouseEvent) => {
-            const x = (e.clientX / window.innerWidth) * 2 - 1;
-            const y = (e.clientY / window.innerHeight) * 2 - 1;
-            setMousePosition({ x, y });
-        };
-        window.addEventListener("mousemove", handleMouseMove);
-        return () => window.removeEventListener("mousemove", handleMouseMove);
-    }, []);
+
     useEffect(() => {
         const observer = new IntersectionObserver((entries) => {
             entries.forEach((entry) => {
@@ -26,26 +18,33 @@ const About = () => {
                 }
             });
         }, { threshold: 0.1 });
+
         if (sectionRef.current) {
             observer.observe(sectionRef.current);
         }
+
         return () => observer.disconnect();
     }, []);
+
     useEffect(() => {
         if (!imageRef.current)
             return;
+
         const handleImageMouseMove = (e: MouseEvent) => {
             if (!imageRef.current)
                 return;
+
             const rect = imageRef.current.getBoundingClientRect();
             const x = ((e.clientX - rect.left) / rect.width - 0.5) * 2;
             const y = ((e.clientY - rect.top) / rect.height - 0.5) * 2;
+
             imageRef.current.style.transform = `
         perspective(1000px) 
         rotateY(${x * 8}deg) 
         rotateX(${-y * 8}deg) 
         translateZ(10px)
       `;
+
             const badgeElements = document.querySelectorAll('.floating-badge');
             badgeElements.forEach((badge) => {
                 if (badge instanceof HTMLElement) {
@@ -58,6 +57,7 @@ const About = () => {
                 }
             });
         };
+
         const handleImageMouseLeave = () => {
             if (imageRef.current) {
                 imageRef.current.style.transform = `
@@ -66,6 +66,7 @@ const About = () => {
           rotateX(0) 
           translateZ(0)
         `;
+
                 const badgeElements = document.querySelectorAll('.floating-badge');
                 badgeElements.forEach((badge) => {
                     if (badge instanceof HTMLElement) {
@@ -79,15 +80,19 @@ const About = () => {
                 });
             }
         };
+
         const imageElement = imageRef.current;
         imageElement.addEventListener("mousemove", handleImageMouseMove);
         imageElement.addEventListener("mouseleave", handleImageMouseLeave);
+
         return () => {
             imageElement.removeEventListener("mousemove", handleImageMouseMove);
             imageElement.removeEventListener("mouseleave", handleImageMouseLeave);
         };
     }, []);
+
     const titleLetters = "About Me".split("");
+
     return (<section ref={sectionRef} id="about" className="py-20 px-4 sm:px-6 lg:px-8 text-slate-100 relative overflow-hidden">
       
       <div className="absolute inset-0 -z-10 overflow-hidden">
@@ -239,7 +244,7 @@ const About = () => {
             </h3>
             
             <p className="text-slate-400 mb-8 leading-relaxed text-base sm:text-lg">
-              I'm a frontend developer and digital craftsman who specializes in building
+              I&apos;m a frontend developer and digital craftsman who specializes in building
               beautiful, intuitive interfaces and memorable web experiences. With a deep
               appreciation for clean design and a passion for interactive technology,
               I transform complex problems into elegant solutions that engage and inspire.
@@ -298,6 +303,7 @@ const About = () => {
       </div>
     </section>);
 };
+
 const features = [
     {
         title: "Creative Vision",
@@ -320,6 +326,7 @@ const features = [
         icon: <FaCode className="text-pink-400 text-xl"/>,
     },
 ];
+
 const badges = [
     {
         title: "React",
@@ -337,4 +344,5 @@ const badges = [
         icon: <SiNextdotjs className="h-6 w-6 text-white"/>,
     },
 ];
+
 export default About;

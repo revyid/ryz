@@ -1,9 +1,10 @@
 "use client";
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { Menu, X, MessageSquare, Send, Bot, User, ChevronRight, Sparkles, LogOut, Loader2, ChevronDown, Copy, Check, Eraser } from 'lucide-react';
+import { Menu, X, MessageSquare, Send, Bot, User, ChevronRight, Sparkles, Loader2, Copy, Check, Eraser } from 'lucide-react';
 import { useAuth, UserButton, SignInButton } from '@clerk/nextjs';
 import { motion, AnimatePresence } from 'framer-motion';
+import "@/styles/components/NavBar.css";
 type NavItem = {
     label: string;
     href: string;
@@ -117,71 +118,66 @@ export default function FloatingNavbar({ navItems }: FloatingNavbarProps) {
         if (!OPENROUTER_API_KEY) {
             return "I cannot connect to the AI service at the moment.";
         }
-        try {
-            const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-                    'HTTP-Referer': 'https://your-site.com',
-                    'X-Title': 'AI Vision Assistant'
-                },
-                body: JSON.stringify({
-                    model: OPENROUTER_MODEL,
-                    messages: messages
-                } as OpenRouterRequest)
-            });
-            if (!response.ok) {
-                throw new Error(`OpenRouter API returned ${response.status}`);
-            }
-            const data = await response.json();
-            return data.choices[0].message.content;
-        }
-        catch (error) {
-            console.error('Error calling OpenRouter API:', error);
-            return "Sorry, I encountered an error while processing your request. Please try again later.";
-        }
+  try {
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+        'HTTP-Referer': 'https://your-site.com',
+        'X-Title': 'AI Vision Assistant'
+      },
+      body: JSON.stringify({
+        model: OPENROUTER_MODEL,
+        messages: messages
+      } as OpenRouterRequest)
+    });
+
+    if (!response.ok) {
+      throw new Error(`OpenRouter API returned ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.choices[0].message.content;
+
+  } catch (error) {
+    console.error('OpenRouter Error:', error);
+    throw error; // opsional, bisa dihapus jika tidak ingin lanjut melempar error
+  }
+};
+
+const sendMessage = async () => {
+  if (chatMessage.trim()) {
+    const userMsgId = generateId();
+    const userMessage = {
+      type: 'user' as MessageType,
+      text: chatMessage.trim(),
+      id: userMsgId
     };
-    const sendMessage = async () => {
-        if (chatMessage.trim()) {
-            const userMsgId = generateId();
-            const userMessage = {
-                type: 'user' as MessageType,
-                text: chatMessage.trim(),
-                id: userMsgId
-            };
-            setChatMessages(prev => [...prev, userMessage]);
-            setChatMessage('');
-            setIsLoading(true);
-            const messageHistory = [
-                ...formatChatHistory([...chatMessages, userMessage])
-            ];
-            try {
-                const aiResponse = await sendToOpenRouter(messageHistory);
-                setChatMessages(prev => [
-                    ...prev,
-                    {
-                        type: 'bot',
-                        text: aiResponse,
-                        id: generateId()
-                    }
-                ]);
-            }
-            catch (error) {
-                setChatMessages(prev => [
-                    ...prev,
-                    {
-                        type: 'bot',
-                        text: "Sorry, I encountered an error while processing your request. Please try again later.",
-                        id: generateId()
-                    }
-                ]);
-            }
-            finally {
-                setIsLoading(false);
-            }
+
+    setChatMessages(prev => [...prev, userMessage]);
+    setChatMessage('');
+    setIsLoading(true);
+
+    const messageHistory = formatChatHistory([...chatMessages, userMessage]);
+
+    try {
+      const aiResponse = await sendToOpenRouter(messageHistory);
+      setChatMessages(prev => [
+        ...prev,
+        {
+          type: 'bot',
+          text: aiResponse,
+          id: generateId()
         }
-    };
+      ]);
+    } catch (error) {
+      console.error('Error sending message:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+};
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
@@ -237,7 +233,7 @@ export default function FloatingNavbar({ navItems }: FloatingNavbarProps) {
 
             
             <div className="hidden md:flex items-center space-x-8 absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
-              {navItems.map((item, index) => (<Link key={item.label} href={item.href} className="text-slate-200 hover:text-white text-sm font-medium relative group py-1.5">
+              {navItems.map((item) => (<Link key={item.label} href={item.href} className="text-slate-200 hover:text-white text-sm font-medium relative group py-1.5">
                   <span className="transition-all duration-300 ease-out group-hover:text-white relative z-10">
                     {item.label}
                   </span>
@@ -289,7 +285,7 @@ export default function FloatingNavbar({ navItems }: FloatingNavbarProps) {
             {isMobileMenuOpen && (<motion.div className="md:hidden mt-2" initial={{ opacity: 0, y: -20, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -20, scale: 0.95 }} transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}>
                 <div className="backdrop-blur-sm bg-black/30 rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-white/10 overflow-hidden">
                   <div className="flex flex-col p-2 space-y-1">
-                    {navItems.map((item, index) => (<motion.div key={item.label} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: index * 0.05, duration: 0.2 }}>
+                    {navItems.map((item) => (<motion.div key={item.label} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: index * 0.05, duration: 0.2 }}>
                         <Link href={item.href} className="text-slate-200 hover:text-white text-sm font-medium py-2.5 px-3 rounded-lg hover:bg-white/5 transition-all flex items-center justify-between" onClick={() => setIsMobileMenuOpen(false)}>
                           {item.label}
                           <ChevronRight size={14} className="text-slate-400"/>
@@ -356,7 +352,7 @@ export default function FloatingNavbar({ navItems }: FloatingNavbarProps) {
                 
                 <div className="h-[350px] md:h-[500px] overflow-y-auto px-4 py-5 space-y-4 chat-messages">
                   <AnimatePresence initial={false}>
-                    {chatMessages.map((msg, index) => (<motion.div key={msg.id} className={`flex items-start gap-2.5 group ${msg.type === 'bot' ? 'max-w-[85%]' : 'ml-auto max-w-[85%] flex-row-reverse'}`} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+                    {chatMessages.map((msg) => (<motion.div key={msg.id} className={`flex items-start gap-2.5 group ${msg.type === 'bot' ? 'max-w-[85%]' : 'ml-auto max-w-[85%] flex-row-reverse'}`} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
                         <div className={`flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center ${msg.type === 'bot'
                     ? 'bg-gradient-to-br from-indigo-500/30 to-purple-500/30'
                     : 'bg-gradient-to-br from-blue-500/30 to-cyan-500/30'}`}>
@@ -415,153 +411,5 @@ export default function FloatingNavbar({ navItems }: FloatingNavbarProps) {
             </div>
           </motion.div>)}
       </AnimatePresence>
-
-      
-      <style jsx global>{`
-        /* Aurora background effect */
-        .aurora-modern {
-          background: linear-gradient(45deg, rgba(76, 0, 255, 0.05) 0%, rgba(76, 0, 255, 0) 70%),
-                      linear-gradient(135deg, rgba(25, 0, 255, 0.05) 10%, rgba(25, 0, 255, 0) 80%),
-                      linear-gradient(225deg, rgba(127, 0, 255, 0.05) 10%, rgba(127, 0, 255, 0) 80%),
-                      linear-gradient(315deg, rgba(200, 0, 255, 0.05) 10%, rgba(200, 0, 255, 0) 80%);
-        }
-        
-        /* Modern glass effect */
-        .glass-panel {
-          backdrop-filter: blur(16px);
-          background-color: rgba(0, 0, 0, 0.5);
-        }
-        
-        /* Glowing text effect */
-        .text-gradient {
-          background: linear-gradient(to right, #a5b4fc, #c4b5fd, #f0abfc);
-          -webkit-background-clip: text;
-          background-clip: text;
-          color: transparent;
-        }
-        
-        /* Animated accent lines */
-        .accent-line-h {
-          background: linear-gradient(to right, transparent, rgba(139, 92, 246, 0.3), transparent);
-          animation: pulse 3s infinite;
-        }
-        
-        .accent-line-v {
-          background: linear-gradient(to bottom, rgba(139, 92, 246, 0.3), transparent);
-          animation: pulse 3s infinite 1s;
-        }
-        
-        /* Modern underline animation */
-        .modern-underline {
-          position: absolute;
-          bottom: -2px;
-          left: 0;
-          width: 0;
-          height: 2px;
-          background: linear-gradient(to right, #a5b4fc, #c4b5fd);
-          transition: width 0.3s ease;
-          border-radius: 3px;
-        }
-        
-        .group:hover .modern-underline {
-          width: 100%;
-        }
-        
-        /* Message animations */
-        .message-animation {
-          animation: messageAppear 0.3s ease-out forwards;
-        }
-        
-        .typing-animation::after {
-          content: '•••';
-          animation: typingDots 1.5s infinite;
-        }
-        
-        /* Mobile menu animations */
-        .mobile-menu-enter {
-          animation: slideDown 0.3s ease-out forwards;
-        }
-        
-        .mobile-menu-item-enter {
-          animation: fadeSlideIn 0.3s ease-out forwards;
-          opacity: 0;
-          transform: translateX(-10px);
-        }
-        
-        /* Chat panel animation */
-        .chat-panel-enter {
-          animation: slideIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-        }
-        
-        /* Floating animation for particles */
-        @keyframes float {
-          0%, 100% { transform: translateY(0) translateX(0); }
-          25% { transform: translateY(-5px) translateX(5px); }
-          50% { transform: translateY(-10px) translateX(0); }
-          75% { transform: translateY(-5px) translateX(-5px); }
-        }
-        
-        /* Glow animation */
-        @keyframes glow {
-          0%, 100% { opacity: 0.3; }
-          50% { opacity: 0.6; }
-        }
-        
-        /* Pulse animation */
-        @keyframes pulse {
-          0%, 100% { opacity: 0.3; }
-          50% { opacity: 0.6; }
-        }
-        
-        /* Message appear animation */
-        @keyframes messageAppear {
-          from { opacity: 0; transform: translateY(10px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        
-        /* Typing dots animation */
-        @keyframes typingDots {
-          0%, 100% { content: '.'; }
-          33% { content: '..'; }
-          66% { content: '...'; }
-        }
-        
-        /* Slide down animation for mobile menu */
-        @keyframes slideDown {
-          from { opacity: 0; transform: translateY(-10px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        
-        /* Fade slide in for mobile menu items */
-        @keyframes fadeSlideIn {
-          from { opacity: 0; transform: translateX(-10px); }
-          to { opacity: 1; transform: translateX(0); }
-        }
-        
-        /* Slide in animation for chat panel */
-        @keyframes slideIn {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        
-        /* Custom scrollbar for chat */
-        .chat-messages::-webkit-scrollbar {
-          width: 5px;
-        }
-        
-        .chat-messages::-webkit-scrollbar-track {
-          background: rgba(255, 255, 255, 0.05);
-          border-radius: 10px;
-        }
-        
-        .chat-messages::-webkit-scrollbar-thumb {
-          background: rgba(255, 255, 255, 0.1);
-          border-radius: 10px;
-        }
-        
-        .chat-messages::-webkit-scrollbar-thumb:hover {
-          background: rgba(255, 255, 255, 0.2);
-        }
-      `}</style>
     </div>);
 }
