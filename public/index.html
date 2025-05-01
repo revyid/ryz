@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Portfolio | Creative Designer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/ScrollTrigger.min.js"></script>
+    <style>
+        /* Custom SCSS styles */
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        @keyframes wave {
+            0% { transform: rotate(0deg); }
+            10% { transform: rotate(14deg); }
+            20% { transform: rotate(-8deg); }
+            30% { transform: rotate(14deg); }
+            40% { transform: rotate(-4deg); }
+            50% { transform: rotate(10deg); }
+            60% { transform: rotate(0deg); }
+            100% { transform: rotate(0deg); }
+        }
+        
+        @keyframes morph {
+            0% { border-radius: 60% 40% 30% 70%/60% 30% 70% 40%; }
+            50% { border-radius: 30% 60% 70% 40%/50% 60% 30% 60%; }
+            100% { border-radius: 60% 40% 30% 70%/60% 30% 70% 40%; }
+        }
+        
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        .animate-wave {
+            animation: wave 2s ease infinite;
+            transform-origin: 70% 70%;
+        }
+        
+        .animate-morph {
+            animation: morph 8s ease-in-out infinite;
+        }
+        
+        .blob {
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            filter: blur(60px);
+            opacity: 0.3;
+            z-index: -1;
+        }
+        
+        .blob-1 {
+            background: linear-gradient(135deg, #6366f1, #a855f7);
+            top: 20%;
+            left: 10%;
+        }
+        
+        .blob-2 {
+            background: linear-gradient(135deg, #ec4899, #f43f5e);
+            bottom: 10%;
+            right: 10%;
+        }
+        
+        .loading-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #6366f1, #ec4899);
+            z-index: 999;
+            transition: width 0.4s ease;
+        }
+        
+        .nav-title {
+            clip-path: polygon(0 0, 0 0, 0 100%, 0 100%);
+            transition: clip-path 0.6s cubic-bezier(0.77, 0, 0.175, 1);
+        }
+        
+        .nav-title.reveal {
+            clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+        }
+        
+        .project-card {
+            transform: perspective(1000px) rotateX(0deg) rotateY(0deg);
+            transform-style: preserve-3d;
+            transition: transform 0.5s ease, box-shadow 0.5s ease;
+        }
+        
+        .project-card:hover {
+            transform: perspective(1000px) rotateX(-5deg) rotateY(5deg);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+        
+        .shape-transition {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #1e293b;
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            clip-path: circle(0% at 50% 50%);
+        }
+        
+        .shape-transition.active {
+            clip-path: circle(150% at 50% 50%);
+            transition: clip-path 1.2s cubic-bezier(0.86, 0, 0.07, 1);
+        }
+        
+        .shape-transition svg {
+            width: 200px;
+            height: 200px;
+            opacity: 0;
+            transform: scale(0.5);
+        }
+        
+        .shape-transition.active svg {
+            opacity: 1;
+            transform: scale(1);
+            transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.3s;
+        }
+        
+        .parallax-element {
+            transition: transform 0.1s ease-out;
+        }
+        
+        .text-gradient {
+            background: linear-gradient(90deg, #6366f1, #ec4899);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .hover-scale {
+            transition: transform 0.3s ease;
+        }
+        
+        .hover-scale:hover {
+            transform: scale(1.05);
+        }
+        
+        .section {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+        
+        .section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 font-sans overflow-x-hidden">
+    <!-- Loading Animation -->
+    <div class="loading-bar" id="loadingBar"></div>
+    
+    <!-- Shape Transition Animation -->
+    <div class="shape-transition" id="shapeTransition">
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <path d="M30,10 Q50,5 70,10 Q95,20 90,40 Q85,65 50,90 Q15,65 10,40 Q5,20 30,10" fill="none" stroke="#ec4899" stroke-width="2"/>
+        </svg>
+    </div>
+    
+    <!-- Background Blobs -->
+    <div class="blob blob-1 animate-float"></div>
+    <div class="blob blob-2 animate-float" style="animation-delay: 2s;"></div>
+    
+    <!-- Navigation -->
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-slate-900/80 backdrop-blur-md border-b border-slate-800">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="nav-title text-2xl font-bold" id="navTitle">
+                <span class="text-gradient">CREATIVE</span>DESIGN
+            </div>
+            <div class="hidden md:flex space-x-8">
+                <a href="#home" class="hover:text-purple-400 transition-colors">Home</a>
+                <a href="#work" class="hover:text-pink-400 transition-colors">Work</a>
+                <a href="#about" class="hover:text-indigo-400 transition-colors">About</a>
+                <a href="#contact" class="hover:text-rose-400 transition-colors">Contact</a>
+            </div>
+            <button class="md:hidden text-xl" id="mobileMenuButton">☰</button>
+        </div>
+    </nav>
+    
+    <!-- Mobile Menu -->
+    <div id="mobileMenu" class="fixed inset-0 bg-slate-900 z-40 flex flex-col items-center justify-center space-y-8 transform translate-y-full transition-transform duration-300">
+        <a href="#home" class="text-2xl hover:text-purple-400 transition-colors">Home</a>
+        <a href="#work" class="text-2xl hover:text-pink-400 transition-colors">Work</a>
+        <a href="#about" class="text-2xl hover:text-indigo-400 transition-colors">About</a>
+        <a href="#contact" class="text-2xl hover:text-rose-400 transition-colors">Contact</a>
+        <button class="absolute top-6 right-6 text-2xl" id="closeMobileMenu">✕</button>
+    </div>
+    
+    <!-- Hero Section -->
+    <section id="home" class="min-h-screen flex items-center justify-center relative overflow-hidden pt-20">
+        <div class="container mx-auto px-6 py-20 flex flex-col md:flex-row items-center">
+            <div class="md:w-1/2 mb-12 md:mb-0">
+                <h1 class="text-5xl md:text-7xl font-bold mb-6">
+                    <span class="block">Hello, I'm</span>
+                    <span class="text-gradient">Alex</span>
+                </h1>
+                <p class="text-xl md:text-2xl text-slate-300 mb-8">
+                    A <span class="text-purple-400 font-medium">creative designer</span> specializing in unique digital experiences and interactive design.
+                </p>
+                <div class="flex space-x-4">
+                    <a href="#work" class="px-8 py-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full font-medium hover:shadow-lg hover:shadow-purple-500/30 transition-all hover-scale">
+                        View Work
+                    </a>
+                    <a href="#contact" class="px-8 py-3 border border-slate-600 rounded-full font-medium hover:bg-slate-800/50 transition-all hover-scale">
+                        Contact Me
+                    </a>
+                </div>
+            </div>
+            <div class="md:w-1/2 flex justify-center">
+                <div class="relative">
+                    <div class="w-64 h-64 md:w-80 md:h-80 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full animate-morph relative overflow-hidden">
+                        <img src="https://revyid.github.io/src/gojo%20icon_edit.jpeg" 
+                             alt="Profile" 
+                             class="w-full h-full object-cover mix-blend-overlay opacity-90">
+                    </div>
+                    <div class="absolute -bottom-6 -right-6 bg-slate-800 px-4 py-2 rounded-full shadow-lg">
+                        <span class="text-sm font-medium">Available for work</span>
+                        <div class="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="absolute bottom-10 left-0 right-0 flex justify-center animate-bounce">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400">
+                <path d="M12 5v14M19 12l-7 7-7-7"/>
+            </svg>
+        </div>
+    </section>
+    
+    <!-- Work Section -->
+    <section id="work" class="py-20 section">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-5xl font-bold mb-4">Selected <span class="text-gradient">Projects</span></h2>
+                <p class="text-slate-400 max-w-2xl mx-auto">A collection of my most recent and impactful work, showcasing innovative design solutions.</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Project 1 -->
+                <div class="project-card bg-slate-800 rounded-2xl overflow-hidden hover:bg-slate-700/50 transition-all duration-300">
+                    <div class="relative h-64 overflow-hidden">
+                        <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" 
+                             alt="Project 1" 
+                             class="w-full h-full object-cover transition-transform duration-500 hover:scale-105">
+                        <div class="absolute inset-0 bg-gradient-to-t from-slate-900/80 to-transparent flex items-end p-6">
+                            <h3 class="text-2xl font-bold">Digital Branding</h3>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-slate-300 mb-4">A complete brand identity system for a tech startup, including logo, color palette, and digital assets.</p>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="px-3 py-1 bg-slate-700 rounded-full text-sm">Branding</span>
+                            <span class="px-3 py-1 bg-slate-700 rounded-full text-sm">UI/UX</span>
+                            <span class="px-3 py-1 bg-slate-700 rounded-full text-sm">Illustration</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Project 2 -->
+                <div class="project-card bg-slate-800 rounded-2xl overflow-hidden hover:bg-slate-700/50 transition-all duration-300">
+                    <div class="relative h-64 overflow-hidden">
+                        <img src="https://images.unsplash.com/photo-1555774698-0b77e0d5fac6?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" 
+                             alt="Project 2" 
+                             class="w-full h-full object-cover transition-transform duration-500 hover:scale-105">
+                        <div class="absolute inset-0 bg-gradient-to-t from-slate-900/80 to-transparent flex items-end p-6">
+                            <h3 class="text-2xl font-bold">E-commerce Platform</h3>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-slate-300 mb-4">A custom e-commerce experience with intuitive navigation and seamless checkout flow.</p>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="px-3 py-1 bg-slate-700 rounded-full text-sm">Web Design</span>
+                            <span class="px-3 py-1 bg-slate-700 rounded-full text-sm">E-commerce</span>
+                            <span class="px-3 py-1 bg-slate-700 rounded-full text-sm">Prototyping</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Project 3 -->
+                <div class="project-card bg-slate-800 rounded-2xl overflow-hidden hover:bg-slate-700/50 transition-all duration-300">
+                    <div class="relative h-64 overflow-hidden">
+                        <img src="https://images.unsplash.com/photo-1547658719-da2b51169166?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1528&q=80" 
+                             alt="Project 3" 
+                             class="w-full h-full object-cover transition-transform duration-500 hover:scale-105">
+                        <div class="absolute inset-0 bg-gradient-to-t from-slate-900/80 to-transparent flex items-end p-6">
+                            <h3 class="text-2xl font-bold">Mobile App UI</h3>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-slate-300 mb-4">A fitness tracking application with custom illustrations and motion design elements.</p>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="px-3 py-1 bg-slate-700 rounded-full text-sm">Mobile</span>
+                            <span class="px-3 py-1 bg-slate-700 rounded-full text-sm">UI/UX</span>
+                            <span class="px-3 py-1 bg-slate-700 rounded-full text-sm">Animation</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center mt-12">
+                <a href="#" class="inline-flex items-center px-6 py-3 border border-slate-600 rounded-full font-medium hover:bg-slate-800/50 transition-all hover-scale">
+                    View All Projects
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ml-2">
+                        <path d="M5 12h14M12 5l7 7-7 7"/>
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </section>
+    
+    <!-- About Section -->
+    <section id="about" class="py-20 bg-slate-800/50 section">
+        <div class="container mx-auto px-6">
+            <div class="flex flex-col md:flex-row items-center">
+                <div class="md:w-1/2 mb-12 md:mb-0 md:pr-12">
+                    <h2 class="text-3xl md:text-5xl font-bold mb-6">About <span class="text-gradient">Me</span></h2>
+                    <p class="text-slate-300 mb-6">
+                        I'm a multidisciplinary designer with over 8 years of experience creating digital experiences that are both beautiful and functional.
+                    </p>
+                    <p class="text-slate-300 mb-8">
+                        My approach combines strategic thinking with aesthetic sensibility, resulting in designs that not only look great but also drive results. I specialize in brand identity, UI/UX design, and interactive experiences.
+                    </p>
+                    <div class="flex flex-wrap gap-4 mb-8">
+                        <div class="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-purple-400 mr-2">
+                                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                            </svg>
+                            <span>+1 (555) 123-4567</span>
+                        </div>
+                        <div class="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-pink-400 mr-2">
+                                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                                <polyline points="22,6 12,13 2,6"/>
+                            </svg>
+                            <span>hello@creativedesign.com</span>
+                        </div>
+                    </div>
+                    <a href="#" class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full font-medium hover:shadow-lg hover:shadow-purple-500/30 transition-all hover-scale">
+                        Download Resume
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ml-2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="7 10 12 15 17 10"/>
+                            <line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                    </a>
+                </div>
+                <div class="md:w-1/2">
+                    <div class="bg-slate-700/50 rounded-2xl p-8">
+                        <h3 class="text-2xl font-bold mb-6">My <span class="text-gradient">Skills</span></h3>
+                        <div class="space-y-6">
+                            <!-- Skill 1 -->
+                            <div>
+                                <div class="flex justify-between mb-2">
+                                    <span class="font-medium">UI/UX Design</span>
+                                    <span>95%</span>
+                                </div>
+                                <div class="w-full bg-slate-600 rounded-full h-2">
+                                    <div class="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full" style="width: 95%"></div>
+                                </div>
+                            </div>
+                            
+                            <!-- Skill 2 -->
+                            <div>
+                                <div class="flex justify-between mb-2">
+                                    <span class="font-medium">Brand Identity</span>
+                                    <span>90%</span>
+                                </div>
+                                <div class="w-full bg-slate-600 rounded-full h-2">
+                                    <div class="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full" style="width: 90%"></div>
+                                </div>
+                            </div>
+                            
+                            <!-- Skill 3 -->
+                            <div>
+                                <div class="flex justify-between mb-2">
+                                    <span class="font-medium">Motion Design</span>
+                                    <span>85%</span>
+                                </div>
+                                <div class="w-full bg-slate-600 rounded-full h-2">
+                                    <div class="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full" style="width: 85%"></div>
+                                </div>
+                            </div>
+                            
+                            <!-- Skill 4 -->
+                            <div>
+                                <div class="flex justify-between mb-2">
+                                    <span class="font-medium">Frontend Dev</span>
+                                    <span>80%</span>
+                                </div>
+                                <div class="w-full bg-slate-600 rounded-full h-2">
+                                    <div class="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full" style="width: 80%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Testimonials Section -->
+    <section class="py-20 section">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-5xl font-bold mb-4">Client <span class="text-gradient">Testimonials</span></h2>
+                <p class="text-slate-400 max-w-2xl mx-auto">What people I've worked with say about my work and approach.</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Testimonial 1 -->
+                <div class="bg-slate-800 rounded-2xl p-8 hover:bg-slate-700/50 transition-all duration-300 hover-scale">
+                    <div class="flex items-center mb-6">
+                        <div class="w-12 h-12 rounded-full overflow-hidden mr-4">
+                            <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=774&q=80" 
+                                 alt="Sarah Johnson" 
+                                 class="w-full h-full object-cover">
+                        </div>
+                        <div>
+                            <h4 class="font-bold">Sarah Johnson</h4>
+                            <p class="text-sm text-slate-400">CEO, TechStart Inc.</p>
+                        </div>
+                    </div>
+                    <p class="text-slate-300 italic">
+                        "Working with Alex was transformative for our brand. Their attention to detail and creative vision elevated our identity beyond what we imagined possible."
+                    </p>
+                    <div class="mt-6 text-yellow-400">
+                        ★★★★★
+                    </div>
+                </div>
+                
+                <!-- Testimonial 2 -->
+                <div class="bg-slate-800 rounded-2xl p-8 hover:bg-slate-700/50 transition-all duration-300 hover-scale">
+                    <div class="flex items-center mb-6">
+                        <div class="w-12 h-12 rounded-full overflow-hidden mr-4">
+                            <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=774&q=80" 
+                                 alt="Michael Chen" 
+                                 class="w-full h-full object-cover">
+                        </div>
+                        <div>
+                            <h4 class="font-bold">Michael Chen</h4>
+                            <p class="text-sm text-slate-400">Product Manager, ShopEasy</p>
+                        </div>
+                    </div>
+                    <p class="text-slate-300 italic">
+                        "The e-commerce platform Alex designed increased our conversion rate by 35%. Their user-centered approach made all the difference."
+                    </p>
+                    <div class="mt-6 text-yellow-400">
+                        ★★★★★
+                    </div>
+                </div>
+                
+                <!-- Testimonial 3 -->
+                <div class="bg-slate-800 rounded-2xl p-8 hover:bg-slate-700/50 transition-all duration-300 hover-scale">
+                    <div class="flex items-center mb-6">
+                        <div class="w-12 h-12 rounded-full overflow-hidden mr-4">
+                            <img src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=774&q=80" 
+                                 alt="Emma Rodriguez" 
+                                 class="w-full h-full object-cover">
+                        </div>
+                        <div>
+                            <h4 class="font-bold">Emma Rodriguez</h4>
+                            <p class="text-sm text-slate-400">Founder, FitTrack</p>
+                        </div>
+                    </div>
+                    <p class="text-slate-300 italic">
+                        "Alex's mobile app design perfectly captured our brand's energy while maintaining exceptional usability. Our users love the interface!"
+                    </p>
+                    <div class="mt-6 text-yellow-400">
+                        ★★★★★
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Contact Section -->
+    <section id="contact" class="py-20 bg-slate-800/50 section">
+        <div class="container mx-auto px-6">
+            <div class="max-w-4xl mx-auto">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl md:text-5xl font-bold mb-4">Get In <span class="text-gradient">Touch</span></h2>
+                    <p class="text-slate-400 max-w-2xl mx-auto">Have a project in mind or want to discuss potential collaboration? I'd love to hear from you.</p>
+                </div>
+                
+                <div class="bg-slate-800 rounded-2xl p-8 md:p-12">
+                    <form id="contactForm" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="name" class="block text-sm font-medium mb-2">Name</label>
+                                <input type="text" id="name" name="name" class="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all" required>
+                            </div>
+                            <div>
+                                <label for="email" class="block text-sm font-medium mb-2">Email</label>
+                                <input type="email" id="email" name="email" class="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all" required>
+                            </div>
+                        </div>
+                        <div>
+                            <label for="subject" class="block text-sm font-medium mb-2">Subject</label>
+                            <input type="text" id="subject" name="subject" class="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all" required>
+                        </div>
+                        <div>
+                            <label for="message" class="block text-sm font-medium mb-2">Message</label>
+                            <textarea id="message" name="message" rows="5" class="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all" required></textarea>
+                        </div>
+                        <div class="pt-2">
+                            <button type="submit" class="w-full px-6 py-4 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg font-bold hover:shadow-lg hover:shadow-purple-500/30 transition-all hover-scale">
+                                Send Message
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Footer -->
+    <footer class="py-12 border-t border-slate-800">
+        <div class="container mx-auto px-6">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-6 md:mb-0">
+                    <div class="text-2xl font-bold mb-2">
+                        <span class="text-gradient">CREATIVE</span>DESIGN
+                    </div>
+                    <p class="text-slate-400">Crafting unique digital experiences.</p>
+                </div>
+                <div class="flex space-x-6">
+                    <a href="#" class="text-slate-400 hover:text-purple-400 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6">
+                            <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
+                        </svg>
+                    </a>
+                    <a href="#" class="text-slate-400 hover:text-pink-400 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6">
+                            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+                            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+                            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
+                        </svg>
+                    </a>
+                    <a href="#" class="text-slate-400 hover:text-blue-400 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6">
+                            <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"/>
+                        </svg>
+                    </a>
+                    <a href="#" class="text-slate-400 hover:text-red-400 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6">
+                            <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.167 6.839 9.49.5.09.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.462-1.11-1.462-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.268 2.75 1.025A9.578 9.578 0 0 1 12 6.836c.85.004 1.705.114 2.504.336 1.909-1.293 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.933.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.163 22 16.418 22 12c0-5.523-4.477-10-10-10z"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+            <div class="border-t border-slate-800 mt-8 pt-8 text-center text-slate-500 text-sm">
+                <p>© 2023 Creative Design. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Loading animation
+            const loadingBar = document.getElementById('loadingBar');
+            const shapeTransition = document.getElementById('shapeTransition');
+            const navTitle = document.getElementById('navTitle');
+            
+            // Simulate loading progress
+            let progress = 0;
+            const loadingInterval = setInterval(() => {
+                progress += Math.random() * 10;
+                loadingBar.style.width = `${progress}%`;
+                
+                if (progress >= 100) {
+                    clearInterval(loadingInterval);
+                    setTimeout(() => {
+                        loadingBar.style.opacity = '0';
+                        loadingBar.style.transition = 'opacity 0.5s ease';
+                        
+                        // Activate shape transition
+                        shapeTransition.classList.add('active');
+                        
+                        // After transition completes, reveal content
+                        setTimeout(() => {
+                            shapeTransition.style.opacity = '0';
+                            shapeTransition.style.pointerEvents = 'none';
+                            shapeTransition.style.transition = 'opacity 0.5s ease';
+                            
+                            // Reveal nav title
+                            navTitle.classList.add('reveal');
+                            
+                            // Show sections with staggered animation
+                            const sections = document.querySelectorAll('.section');
+                            sections.forEach((section, index) => {
+                                setTimeout(() => {
+                                    section.classList.add('visible');
+                                }, index * 200);
+                            });
+                            
+                            // Initialize GSAP animations
+                            initAnimations();
+                        }, 1200);
+                    }, 300);
+                }
+            }, 100);
+            
+            // Mobile menu toggle
+            const mobileMenuButton = document.getElementById('mobileMenuButton');
+            const closeMobileMenu = document.getElementById('closeMobileMenu');
+            const mobileMenu = document.getElementById('mobileMenu');
+            
+            mobileMenuButton.addEventListener('click', () => {
+                mobileMenu.style.transform = 'translateY(0)';
+            });
+            
+            closeMobileMenu.addEventListener('click', () => {
+                mobileMenu.style.transform = 'translateY(100%)';
+            });
+            
+            // Smooth scrolling for anchor links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    const targetId = this.getAttribute('href');
+                    const targetElement = document.querySelector(targetId);
+                    
+                    if (targetElement) {
+                        window.scrollTo({
+                            top: targetElement.offsetTop - 80,
+                            behavior: 'smooth'
+                        });
+                        
+                        // Close mobile menu if open
+                        mobileMenu.style.transform = 'translateY(100%)';
+                    }
+                });
+            });
+            
+            // Form submission
+            const contactForm = document.getElementById('contactForm');
+            if (contactForm) {
+                contactForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    // Here you would typically send the form data to a server
+                    alert('Thank you for your message! I will get back to you soon.');
+                    this.reset();
+                });
+            }
+            
+            // Initialize GSAP animations
+            function initAnimations() {
+                // Register ScrollTrigger plugin
+                gsap.registerPlugin(ScrollTrigger);
+                
+                // Parallax effect for hero section
+                gsap.to('.blob-1', {
+                    scrollTrigger: {
+                        scrub: 1
+                    },
+                    y: 100,
+                    ease: "none"
+                });
+                
+                gsap.to('.blob-2', {
+                    scrollTrigger: {
+                        scrub: 1
+                    },
+                    y: -100,
+                    ease: "none"
+                });
+                
+                // Animate project cards on scroll
+                gsap.utils.toArray('.project-card').forEach(card => {
+                    gsap.from(card, {
+                        scrollTrigger: {
+                            trigger: card,
+                            start: "top 80%",
+                            toggleActions: "play none none none"
+                        },
+                        opacity: 0,
+                        y: 50,
+                        duration: 0.8,
+                        ease: "power2.out"
+                    });
+                });
+                
+                // Wave animation for hand emoji in contact section
+                const waveEmoji = document.createElement('div');
+                waveEmoji.innerHTML = '👋';
+                waveEmoji.className = 'inline-block animate-wave text-2xl ml-2';
+                
+                const contactHeading = document.querySelector('#contact h2');
+                if (contactHeading) {
+                    contactHeading.appendChild(waveEmoji);
+                }
+            }
+            
+            // Simple parallax effect for mouse movement
+            document.addEventListener('mousemove', function(e) {
+                const parallaxElements = document.querySelectorAll('.parallax-element');
+                const x = e.clientX / window.innerWidth;
+                const y = e.clientY / window.innerHeight;
+                
+                parallaxElements.forEach(element => {
+                    const speed = parseFloat(element.getAttribute('data-speed')) || 0.1;
+                    const xMove = x * speed * 100;
+                    const yMove = y * speed * 100;
+                    
+                    element.style.transform = `translate(${xMove}px, ${yMove}px)`;
+                });
+            });
+        });
+    </script>
+<p style="border-radius: 8px; text-align: center; font-size: 12px; color: #fff; margin-top: 16px;position: fixed; left: 8px; bottom: 8px; z-index: 10; background: rgba(0, 0, 0, 0.8); padding: 4px 8px;">Made with <img src="https://enzostvs-deepsite.hf.space/logo.svg" alt="DeepSite Logo" style="width: 16px; height: 16px; vertical-align: middle;display:inline-block;margin-right:3px;filter:brightness(0) invert(1);"><a href="https://enzostvs-deepsite.hf.space" style="color: #fff;text-decoration: underline;" target="_blank" >DeepSite</a> - 🧬 <a href="https://enzostvs-deepsite.hf.space?remix=RyzeUS/repy" style="color: #fff;text-decoration: underline;" target="_blank" >Remix</a></p></body>
+</html>
