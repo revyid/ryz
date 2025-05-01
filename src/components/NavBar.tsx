@@ -285,7 +285,7 @@ const sendMessage = async () => {
             {isMobileMenuOpen && (<motion.div className="md:hidden mt-2" initial={{ opacity: 0, y: -20, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -20, scale: 0.95 }} transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}>
                 <div className="backdrop-blur-sm bg-black/30 rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-white/10 overflow-hidden">
                   <div className="flex flex-col p-2 space-y-1">
-                    {navItems.map((item) => (<motion.div key={item.label} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: index * 0.05, duration: 0.2 }}>
+                    {navItems.map((item, index) => (<motion.div key={item.label} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: index * 0.05, duration: 0.2 }}>
                         <Link href={item.href} className="text-slate-200 hover:text-white text-sm font-medium py-2.5 px-3 rounded-lg hover:bg-white/5 transition-all flex items-center justify-between" onClick={() => setIsMobileMenuOpen(false)}>
                           {item.label}
                           <ChevronRight size={14} className="text-slate-400"/>
