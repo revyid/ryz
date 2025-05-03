@@ -1,7 +1,7 @@
 import { Webhook } from 'svix';
 import { headers } from 'next/headers';
 import { NextResponse } from 'next/server';
-import { db } from '@/firebaseConfig';
+import { db } from '@/lib/firebaseConfig';
 import { ref, set } from 'firebase/database';
 
 export async function POST(req: Request) {
