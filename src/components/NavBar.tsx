@@ -84,51 +84,60 @@ export default function FloatingNavbar({ navItems }: FloatingNavbarProps) {
             },
         ]);
     };
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!chatMessage.trim() || isLoading)
-            return;
-        const userMsgId = generateId();
-        const userMessage = {
-            type: 'user' as MessageType,
-            text: chatMessage.trim(),
-            id: userMsgId
-        };
-        setChatMessages(prev => [...prev, userMessage]);
-        setChatMessage('');
-        setIsLoading(true);
-        try {
-            const apiKey = process.env.NEXT_PUBLIC_OPENROUTER_API_KEY || "";
-            const messageHistory = chatMessages.map(msg => ({
-                role: msg.type === 'user' ? 'user' : 'assistant',
-                content: msg.text
-            }));
-            messageHistory.push({ role: 'user', content: userMessage.text });
-            const aiResponse = await sendToOpenRouter(messageHistory, apiKey);
-            setChatMessages(prev => [
-                ...prev,
-                {
-                    type: 'bot',
-                    text: aiResponse,
-                    id: generateId()
-                }
-            ]);
-        }
-        catch (error) {
-            console.error('Error sending message:', error);
-            setChatMessages(prev => [
-                ...prev,
-                {
-                    type: 'bot',
-                    text: "Sorry, I encountered an error. Please try again.",
-                    id: generateId()
-                }
-            ]);
-        }
-        finally {
-            setIsLoading(false);
-        }
-    };
+
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  if (!chatMessage.trim() || isLoading) return;
+
+  const userMsgId = generateId();
+  const userMessage = {
+    type: 'user' as MessageType,
+    text: chatMessage.trim(),
+    id: userMsgId
+  };
+
+  setChatMessages(prev => [...prev, userMessage]);
+  setChatMessage('');
+  setIsLoading(true);
+
+  try {
+    const apiKey = process.env.NEXT_PUBLIC_OPENROUTER_API_KEY || "";
+    
+    // Properly typed message history
+    const messageHistory: OpenRouterMessage[] = chatMessages.map(msg => ({
+      role: msg.type === 'user' ? 'user' : 'assistant',
+      content: msg.text
+    }));
+    
+    messageHistory.push({ 
+      role: 'user', 
+      content: userMessage.text 
+    });
+
+    const aiResponse = await sendToOpenRouter(messageHistory, apiKey);
+    
+    setChatMessages(prev => [
+      ...prev,
+      {
+        type: 'bot',
+        text: aiResponse,
+        id: generateId()
+      }
+    ]);
+  } catch (error) {
+    console.error('Error sending message:', error);
+    setChatMessages(prev => [
+      ...prev,
+      {
+        type: 'bot',
+        text: "Sorry, I encountered an error. Please try again.",
+        id: generateId()
+      }
+    ]);
+  } finally {
+    setIsLoading(false);
+  }
+};
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();

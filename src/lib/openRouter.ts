@@ -1,9 +1,11 @@
-interface OpenRouterMessage {
-  role: "system" | "user" | "assistant";
+export type OpenRouterMessageRole = "system" | "user" | "assistant";
+
+export interface OpenRouterMessage {
+  role: OpenRouterMessageRole;
   content: string;
 }
 
-interface OpenRouterRequest {
+export interface OpenRouterRequest {
   model: string;
   messages: OpenRouterMessage[];
 }
