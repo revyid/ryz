@@ -5,7 +5,7 @@ import { Menu, X, MessageSquare, Send, Bot, User, ChevronRight, Sparkles, Loader
 import { useAuth, SignInButton } from '@clerk/nextjs';
 import { motion, AnimatePresence } from 'framer-motion';
 import { UserButtonCustom } from '@/components/clerk/UserButton';
-import { sendToOpenRouter } from '@/lib/openRouter';
+import { sendToOpenRouter, OpenRouterMessage } from '@/lib/openRouter';
 import ReactMarkdown from 'react-markdown';
 import "@/styles/components/NavBar.css";
 type NavItem = {
