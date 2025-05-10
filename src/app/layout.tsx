@@ -1,56 +1,45 @@
-import type { Metadata } from 'next';
+// app/layout.tsx
+'use client';
 import { Inter } from 'next/font/google';
-import { ClerkProvider } from '@clerk/nextjs';
-import FloatingNavbar from '@/components/NavBar';
-import ClerkRemover from '@/components/ClerkRemover';
-import { dark } from '@clerk/themes';
 import './globals.css';
-const inter = Inter({
-    subsets: ['latin'],
-    display: 'swap',
-    variable: '--font-inter',
-});
+import { ClerkProvider } from '@clerk/nextjs';
+import dynamic from 'next/dynamic';
+
+const inter = Inter({ subsets: ['latin'] });
+
 const navItems = [
-    { label: 'Home', href: '/' },
-    { label: 'Features', href: '/features' },
-    { label: 'Pricing', href: '/pricing' },
-    { label: 'About', href: '/about' },
-    { label: 'Contact', href: '/contact' },
+  { label: 'Home', href: '/' },
+  { label: 'Dashboard', href: '/dashboard' },
+  { label: 'Profile', href: '/profile' },
+  { label: 'Settings', href: '/settings' },
 ];
-export const metadata: Metadata = {
-    title: 'Ryz',
-    description: '',
-};
-export default function RootLayout({ children, }: {
-    children: React.ReactNode;
+
+// Dynamically import the NavBar to avoid SSR
+const FloatingNavbar = dynamic(
+  () => import('@/components/NavBar').then((mod) => mod.default),
+  { 
+    ssr: false,
+    loading: () => (
+      <div className="fixed top-0 left-0 right-0 z-50 h-16 bg-gray-900/80 backdrop-blur-sm border-b border-gray-800" />
+    )
+  }
+);
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
 }) {
-    return (<ClerkProvider appearance={{
-            baseTheme: dark,
-        }}>
-      <html lang="en" className={inter.variable}>
-        <body className="min-h-screen bg-slate-950 text-slate-50">
-          
-        <ClerkRemover config={{
-            selectors: [
-                '.cl-internal-1hp5nqm',
-                '.cl-internal-piyvrh',
-                '.cl-internal-df7v37',
-                '.cl-internal-y44tp9',
-                '.cl-internal-16mc20d',
-                '.cl-internal-wf8x4b',
-                '.cl-internal-1fcj7sw',
-                '.cl-internal-5ghyhf',
-                '.cl-internal-16vtwdp'
-            ],
-            debug: true,
-        }}/>
-          <FloatingNavbar navItems={navItems}/>
-          
-          
-          <main className=" bg-slate-950 min-h-[calc(100vh-4rem)]">
+  return (
+    <ClerkProvider>
+      <html lang="en">
+        <body className={`${inter.className} bg-gray-950 text-white min-h-screen`}>
+          <FloatingNavbar navItems={navItems} />
+          <main className="">
             {children}
           </main>
         </body>
       </html>
-    </ClerkProvider>);
+    </ClerkProvider>
+  );
 }

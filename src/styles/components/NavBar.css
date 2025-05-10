@@ -1,127 +1,42 @@
-        .aurora-modern {
-          background: linear-gradient(45deg, rgba(76, 0, 255, 0.05) 0%, rgba(76, 0, 255, 0) 70%),
-                      linear-gradient(135deg, rgba(25, 0, 255, 0.05) 10%, rgba(25, 0, 255, 0) 80%),
-                      linear-gradient(225deg, rgba(127, 0, 255, 0.05) 10%, rgba(127, 0, 255, 0) 80%),
-                      linear-gradient(315deg, rgba(200, 0, 255, 0.05) 10%, rgba(200, 0, 255, 0) 80%);
-        }
-        
-        .glass-panel {
-          backdrop-filter: blur(16px);
-          background-color: rgba(0, 0, 0, 0.5);
-        }
-        
-        .text-gradient {
-          background: linear-gradient(to right, #a5b4fc, #c4b5fd, #f0abfc);
-          -webkit-background-clip: text;
-          background-clip: text;
-          color: transparent;
-        }
-        
-        .accent-line-h {
-          background: linear-gradient(to right, transparent, rgba(139, 92, 246, 0.3), transparent);
-          animation: pulse 3s infinite;
-        }
-        
-        .accent-line-v {
-          background: linear-gradient(to bottom, rgba(139, 92, 246, 0.3), transparent);
-          animation: pulse 3s infinite 1s;
-        }
-        
-        .modern-underline {
-          position: absolute;
-          bottom: -2px;
-          left: 0;
-          width: 0;
-          height: 2px;
-          background: linear-gradient(to right, #a5b4fc, #c4b5fd);
-          transition: width 0.3s ease;
-          border-radius: 3px;
-        }
-        
-        .group:hover .modern-underline {
-          width: 100%;
-        }
-        
-        .message-animation {
-          animation: messageAppear 0.3s ease-out forwards;
-        }
-        
-        .typing-animation::after {
-          content: '•••';
-          animation: typingDots 1.5s infinite;
-        }
-        
-        .mobile-menu-enter {
-          animation: slideDown 0.3s ease-out forwards;
-        }
-        
-        .mobile-menu-item-enter {
-          animation: fadeSlideIn 0.3s ease-out forwards;
-          opacity: 0;
-          transform: translateX(-10px);
-        }
-        
-        .chat-panel-enter {
-          animation: slideIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-        }
-        
-        @keyframes float {
-          0%, 100% { transform: translateY(0) translateX(0); }
-          25% { transform: translateY(-5px) translateX(5px); }
-          50% { transform: translateY(-10px) translateX(0); }
-          75% { transform: translateY(-5px) translateX(-5px); }
-        }
-        
-        @keyframes glow {
-          0%, 100% { opacity: 0.3; }
-          50% { opacity: 0.6; }
-        }
-        
-        @keyframes pulse {
-          0%, 100% { opacity: 0.3; }
-          50% { opacity: 0.6; }
-        }
-        
-        @keyframes messageAppear {
-          from { opacity: 0; transform: translateY(10px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        
-        @keyframes typingDots {
-          0%, 100% { content: '.'; }
-          33% { content: '..'; }
-          66% { content: '...'; }
-        }
-        
-        @keyframes slideDown {
-          from { opacity: 0; transform: translateY(-10px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        
-        @keyframes fadeSlideIn {
-          from { opacity: 0; transform: translateX(-10px); }
-          to { opacity: 1; transform: translateX(0); }
-        }
+/* src/styles/components/NavBar.css */
+.navbar-container {
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
 
-        @keyframes slideIn {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .chat-messages::-webkit-scrollbar {
-          width: 5px;
-        }
-        
-        .chat-messages::-webkit-scrollbar-track {
-          background: rgba(255, 255, 255, 0.05);
-          border-radius: 10px;
-        }
-        
-        .chat-messages::-webkit-scrollbar-thumb {
-          background: rgba(255, 255, 255, 0.1);
-          border-radius: 10px;
-        }
-        
-        .chat-messages::-webkit-scrollbar-thumb:hover {
-          background: rgba(255, 255, 255, 0.2);
-        }
+.navbar-gradient {
+  background: linear-gradient(90deg, rgba(99, 102, 241, 0.1) 0%, rgba(168, 85, 247, 0.1) 50%, rgba(236, 72, 153, 0.1) 100%);
+}
+
+.navbar-glow {
+  animation: glow 3s ease-in-out infinite alternate;
+}
+
+@keyframes glow {
+  from {
+    box-shadow: 0 0 5px rgba(99, 102, 241, 0.5);
+  }
+  to {
+    box-shadow: 0 0 20px rgba(168, 85, 247, 0.7);
+  }
+}
+
+.chat-bubble-bot {
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.2) 0%, rgba(124, 58, 237, 0.2) 100%);
+}
+
+.chat-bubble-user {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(6, 182, 212, 0.2) 100%);
+}
+
+.floating-dot {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
